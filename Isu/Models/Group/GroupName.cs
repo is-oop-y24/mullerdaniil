@@ -1,17 +1,22 @@
 ﻿using System;
+using Isu.Tools;
 
 namespace Isu.Models.Group
 {
     public class GroupName
     {
-        public GroupName(CourseNumber courseNumber, GroupNumber groupNumber)
+        private const int GroupNumberMinValue = 0;
+        private const int GroupNumberMaxValue = 99;
+        public GroupName(CourseNumber courseNumber, int groupNumber)
         {
+            if (!(groupNumber >= GroupNumberMinValue && groupNumber <= GroupNumberMaxValue))
+                throw new IsuException("Invalid group number (value must be between " + GroupNumberMinValue + " and " + GroupNumberMaxValue + ")");
             CourseNumber = courseNumber;
             GroupNumber = groupNumber;
         }
 
         public CourseNumber CourseNumber { get; }
-        public GroupNumber GroupNumber { get; }
+        public int GroupNumber { get; }
 
         public override bool Equals(object obj)
         {
@@ -28,7 +33,7 @@ namespace Isu.Models.Group
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(CourseNumber.Number, GroupNumber.Number);
+            return HashCode.Combine(CourseNumber, GroupNumber);
         }
     }
 }

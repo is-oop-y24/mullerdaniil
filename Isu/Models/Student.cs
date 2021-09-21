@@ -11,7 +11,7 @@
 
         public int Id { get; }
         public string Name { get; }
-        public Group.Group Group { get; set; }
+        public Group.Group Group { get; }
 
         public override bool Equals(object obj)
         {
@@ -19,10 +19,8 @@
             {
                 return false;
             }
-            else
-            {
-                return Id == ((Student)obj).Id;
-            }
+
+            return Id == ((Student)obj).Id;
         }
 
         public override int GetHashCode()

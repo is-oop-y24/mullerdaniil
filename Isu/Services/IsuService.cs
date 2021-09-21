@@ -9,6 +9,7 @@ namespace Isu.Services
 {
     public class IsuService : IIsuService
     {
+        private const int MaxStudentPerGroup = 20;
         private static int _currentId;
 
         private List<Student> _students = new List<Student>();
@@ -30,7 +31,8 @@ namespace Isu.Services
 
             var newStudent = new Student(_currentId++, name, group);
             _students.Add(newStudent);
-            FindGroup(group.GroupName).AddStudent(newStudent);
+            if (!IsGroupValid(group))
+                throw new IsuException("Too many students in the group.");
             return newStudent;
         }
 
@@ -55,18 +57,12 @@ namespace Isu.Services
 
         public List<Student> FindStudents(GroupName groupName)
         {
-            return FindGroup(groupName).Students;
+            return _students.FindAll(student => student.Group.GroupName.Equals(groupName));
         }
 
         public List<Student> FindStudents(CourseNumber courseNumber)
         {
-            var findResult = new List<Student>();
-            foreach (Group group in _groups.Where(group => group.GroupName.CourseNumber.Equals(courseNumber)))
-            {
-                findResult.AddRange(group.Students);
-            }
-
-            return findResult;
+            return _students.FindAll(student => student.Group.GroupName.CourseNumber == courseNumber);
         }
 
         public Group FindGroup(GroupName groupName)
@@ -91,10 +87,18 @@ namespace Isu.Services
                 throw new IsuException("No such group found");
             }
 
-            Group oldGroup = student.Group;
-            student.Group = newGroup;
-            oldGroup.RemoveStudent(student);
-            newGroup.AddStudent(student);
+            _students.Remove(student);
+            student = new Student(student.Id, student.Name, newGroup);
+            _students.Add(student);
+
+            if (!IsGroupValid(newGroup))
+                throw new IsuException("Too many students in the group.");
+        }
+
+        private bool IsGroupValid(Group group)
+        {
+            int studentsCount = _students.Count(student => student.Group.Equals(group));
+            return studentsCount <= MaxStudentPerGroup;
         }
     }
 }

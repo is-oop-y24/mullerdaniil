@@ -2,16 +2,29 @@
 
 namespace Isu.Models.Group
 {
-    public class CourseNumber
+    /// <summary>
+    /// Types of courses.
+    /// </summary>
+    public enum CourseNumber
     {
-        public CourseNumber(int number)
-        {
-            if (number >= 1 && number <= 5)
-                Number = number;
-            else
-                throw new IsuException("Invalid course number (Must between 1 and 5)");
-        }
+        /// <summary>
+        /// Course no. 1.
+        /// </summary>
+        Course1 = 1,
 
-        public int Number { get; }
+        /// <summary>
+        /// Course no. 2.
+        /// </summary>
+        Course2 = 2,
+
+        /// <summary>
+        /// Course no. 3.
+        /// </summary>
+        Course3 = 3,
+
+        /// <summary>
+        /// Course no. 4.
+        /// </summary>
+        Course4 = 4,
     }
 }
