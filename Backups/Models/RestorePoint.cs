@@ -4,21 +4,13 @@ namespace Backups.Models
 {
     public class RestorePoint
     {
-        public RestorePoint(string name, string storageSuffix, List<JobObject> jobObjects)
+        public RestorePoint(string name, List<Storage> storages)
         {
             Name = name;
-            JobObjects = jobObjects;
-
-            // to-do : initializing storages
-            Storages = new List<Storage>();
-            foreach (JobObject jobObject in jobObjects)
-            {
-                Storages.Add(new Storage(storageSuffix + jobObject.Name, jobObject));
-            }
+            Storages = storages;
         }
 
         public string Name { get; }
-        public List<JobObject> JobObjects { get; }
         public List<Storage> Storages { get; }
     }
 }

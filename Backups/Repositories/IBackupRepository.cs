@@ -1,12 +1,11 @@
-﻿using Backups.Enums;
+﻿using System.Collections.Generic;
 using Backups.Models;
 
 namespace Backups.Repositories
 {
     public interface IBackupRepository
     {
-        void SaveBackupJob(BackupJob backupJob);
-        void SaveRestorePoint(RestorePoint restorePoint, BackupJob backupJob);
-        void SetStoreAlgorithm(StoreAlgorithm storeAlgorithm);
+        Storage CreateStorage(JobObject jobObject, string restorePointName, string backupName);
+        Storage CreateStorage(List<JobObject> jobObjects, string restorePointName, string backupName);
     }
 }

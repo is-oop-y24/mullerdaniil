@@ -2,14 +2,13 @@
 {
     public class Storage
     {
-        private readonly JobObject _jobObject;
-        public Storage(string name, JobObject jobObject)
+        public Storage(string name, string filePath)
         {
-            _jobObject = jobObject;
             Name = name;
+            FilePath = filePath;
         }
 
-        public string OriginalFilePath => _jobObject.FilePath;
         public string Name { get; }
+        public string FilePath { get; }
     }
 }

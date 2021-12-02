@@ -1,23 +1,20 @@
-﻿using Backups.Enums;
+﻿using System.Collections.Generic;
 using Backups.Models;
 
 namespace Backups.Repositories
 {
     public class DummyRepository : IBackupRepository
     {
-        public void SaveBackupJob(BackupJob backupJob)
+        public Storage CreateStorage(JobObject jobObject, string restorePointName, string backupName)
         {
-            // no operation.
+            // no storage saving.
+            return new Storage(jobObject.Name, string.Empty);
         }
 
-        public void SaveRestorePoint(RestorePoint restorePoint, BackupJob backupJob)
+        public Storage CreateStorage(List<JobObject> jobObjects, string restorePointName, string backupName)
         {
-            // no operation.
-        }
-
-        public void SetStoreAlgorithm(StoreAlgorithm storeAlgorithm)
-        {
-            // no operation.
+            // no storage saving.
+            return new Storage(restorePointName, string.Empty);
         }
     }
 }

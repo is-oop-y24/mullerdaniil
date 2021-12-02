@@ -1,6 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
-using Backups.Enums;
 using Backups.Models;
 using Backups.Tools;
 
@@ -10,93 +10,50 @@ namespace Backups.Repositories
     {
         private readonly string _backupDirectoryPath = Path.Combine(Directory.GetCurrentDirectory(), "backups");
 
-        public FileBackupRepository()
+        public Storage CreateStorage(JobObject jobObject, string restorePointName, string backupName)
         {
-            JobStoreAlgorithm = StoreAlgorithm.SingleStorage;
-        }
-
-        public FileBackupRepository(string backupDirectoryPath)
-            : this()
-        {
-            _backupDirectoryPath = backupDirectoryPath;
-        }
-
-        public StoreAlgorithm JobStoreAlgorithm { get; set; }
-        public void SaveBackupJob(BackupJob backupJob)
-        {
-            string backupJobDirectoryPath = Path.Combine(_backupDirectoryPath, backupJob.Name);
-            if (Directory.Exists(backupJobDirectoryPath))
-            {
-                throw new BackupException("Backup job with name " + backupJob.Name + " already exists.");
-            }
-
-            Directory.CreateDirectory(backupJobDirectoryPath);
-        }
-
-        public void SaveRestorePoint(RestorePoint restorePoint, BackupJob backupJob)
-        {
-            string restorePointDirectoryPath = Path.Combine(_backupDirectoryPath, backupJob.Name, restorePoint.Name);
-            if (Directory.Exists(restorePointDirectoryPath))
-            {
-                throw new BackupException("Restore point with name + " + restorePoint.Name + " already exists.");
-            }
-
-            Directory.CreateDirectory(restorePointDirectoryPath);
-
-            if (JobStoreAlgorithm == StoreAlgorithm.SplitStorages)
-            {
-                foreach (Storage storage in restorePoint.Storages)
-                {
-                    SaveStorage(storage, restorePoint, backupJob);
-                }
-            }
-            else if (JobStoreAlgorithm == StoreAlgorithm.SingleStorage)
-            {
-                string restorePointArchiveFilePath =
-                    Path.Combine(restorePointDirectoryPath, restorePoint.Name + ".zip");
-                using (FileStream fileStream = new FileStream(restorePointArchiveFilePath, FileMode.Create))
-                using (ZipArchive zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Create, true))
-                {
-                    foreach (Storage storage in restorePoint.Storages)
-                    {
-                        zipArchive.CreateEntryFromFile(storage.OriginalFilePath, storage.Name);
-                    }
-                }
-            }
-        }
-
-        public void SetStoreAlgorithm(StoreAlgorithm storeAlgorithm)
-        {
-            JobStoreAlgorithm = storeAlgorithm;
-        }
-
-        private void SaveStorage(Storage storage, RestorePoint restorePoint, BackupJob backupJob)
-        {
+            CreateRestorePointDirectory(restorePointName, backupName);
             string storageFilePath =
-                Path.Combine(_backupDirectoryPath, backupJob.Name, restorePoint.Name, storage.Name + ".zip");
+                Path.Combine(_backupDirectoryPath, backupName, restorePointName, jobObject.Name + ".zip");
             if (File.Exists(storageFilePath))
             {
-                throw new BackupException("Storage with name " + storage.Name + " already exists.");
+                throw new BackupException("Storage with name " + jobObject.Name + " already exists.");
             }
 
-            // File.Copy(storage.OriginalFilePath, storageFilePath);
             using (FileStream fileStream = new FileStream(storageFilePath, FileMode.Create))
             using (ZipArchive zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Create, true))
             {
-                zipArchive.CreateEntryFromFile(storage.OriginalFilePath, storage.Name);
+                zipArchive.CreateEntryFromFile(jobObject.FilePath, jobObject.Name);
             }
+
+            return new Storage(jobObject.Name, storageFilePath);
         }
 
-        // private void RemoveStorage(Storage storage, RestorePoint restorePoint, BackupJob backupJob)
-        // {
-        //     string storageFilePath =
-        //         Path.Combine(_backupDirectoryPath, backupJob.Name, restorePoint.Name, storage.Name);
-        //     if (!File.Exists(storageFilePath))
-        //     {
-        //         throw new BackupException("Storage with name " + storage.Name + " does not exist.");
-        //     }
-        //
-        //     File.Delete(storageFilePath);
-        // }
+        public Storage CreateStorage(List<JobObject> jobObjects, string restorePointName, string backupName)
+        {
+            CreateRestorePointDirectory(restorePointName, backupName);
+            string restorePointDirectoryPath = Path.Combine(_backupDirectoryPath, backupName, restorePointName);
+            string restorePointArchiveFilePath =
+                Path.Combine(restorePointDirectoryPath, restorePointName + ".zip");
+            using (FileStream fileStream = new FileStream(restorePointArchiveFilePath, FileMode.Create))
+            using (ZipArchive zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Create, true))
+            {
+                foreach (JobObject jobObject in jobObjects)
+                {
+                    zipArchive.CreateEntryFromFile(jobObject.FilePath, jobObject.Name);
+                }
+            }
+
+            return new Storage(restorePointName, restorePointArchiveFilePath);
+        }
+
+        private void CreateRestorePointDirectory(string restorePointName, string backupName)
+        {
+            string directoryPath = Path.Combine(_backupDirectoryPath, backupName, restorePointName);
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+        }
     }
 }

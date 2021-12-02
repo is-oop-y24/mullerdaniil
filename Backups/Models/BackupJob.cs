@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Backups.Models.StoreAlgorithms;
 using Backups.Repositories;
 
 namespace Backups.Models
@@ -10,14 +11,14 @@ namespace Backups.Models
         {
             Name = name;
             _backupRepository = backupRepository;
-            RestorePoints = new List<RestorePoint>();
             JobObjects = new List<JobObject>();
-            _backupRepository.SaveBackupJob(this);
+            Backup = new Backup(Name);
         }
 
         public string Name { get; }
-        public List<RestorePoint> RestorePoints { get; }
         public List<JobObject> JobObjects { get; }
+        public IStoreAlgorithm StoreAlgorithm { get; set; } = new SplitStoragesAlgorithm();
+        public Backup Backup { get; }
 
         public void AddJobObject(JobObject jobObject)
         {
@@ -31,15 +32,10 @@ namespace Backups.Models
 
         public RestorePoint Run(string restorePointName)
         {
-            RestorePoint restorePoint = new RestorePoint(restorePointName, GenerateStorageSuffix(restorePointName), new List<JobObject>(JobObjects));
-            _backupRepository.SaveRestorePoint(restorePoint, this);
-            RestorePoints.Add(restorePoint);
+            List<Storage> storages = StoreAlgorithm.MakeStorages(JobObjects, restorePointName, Backup.Name, _backupRepository);
+            RestorePoint restorePoint = new RestorePoint(restorePointName, storages);
+            Backup.AddRestorePoint(restorePoint);
             return restorePoint;
-        }
-
-        private static string GenerateStorageSuffix(string restorePointName)
-        {
-            return restorePointName + "_";
         }
     }
 }
